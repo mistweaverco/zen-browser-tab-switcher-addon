@@ -234,18 +234,9 @@ function showOmnibar() {
           selectedIndex = selectedIndex <= 0 ? numItems - 1 : selectedIndex - 1;
           updateSelection();
           e.preventDefault();
-        } else if (e.key === "ArrowRight" || (e.key === "n" && e.ctrlKey)) {
-          selectedIndex = Math.min(selectedIndex + 10, numItems - 1);
-          updateSelection();
-          e.preventDefault();
-        } else if (e.key === "ArrowLeft" || (e.key === "p" && e.ctrlKey)) {
-          selectedIndex = Math.max(selectedIndex - 10, 0);
-          updateSelection();
-          e.preventDefault();
         }
       });
 
-      /* Helper to update selection */
       function updateSelection() {
         const items = list.querySelectorAll("li");
         list.querySelector("li.selected")?.classList.remove("selected");
