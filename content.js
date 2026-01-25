@@ -31,6 +31,15 @@ function showOmnibar() {
     return;
   }
 
+  let selectedIndex = 0;
+
+  let mouseMoved = false;
+  const mouseMoveListener = () => {
+    mouseMoved = true;
+    document.removeEventListener("mousemove", mouseMoveListener);
+  };
+  document.addEventListener("mousemove", mouseMoveListener);
+
   /* Create overlay */
   const overlay = document.createElement("div");
   overlay.id = "zen-browser-tab-switcher";
@@ -95,10 +104,18 @@ function showOmnibar() {
        */
       function renderTabs(filteredTabs) {
         list.innerHTML = "";
-        filteredTabs.forEach((tab) => {
+        filteredTabs.forEach((tab, idx) => {
           const li = document.createElement("li");
-          li.className = "zen-tab-item";
-          li.dataset.tabId = tab.id; /* Store tabId directly */
+          li.className = "zen-tab-item" + (idx === 0 ? " selected" : "");
+          li.dataset.tabId = tab.id;
+
+          li.addEventListener("mouseover", () => {
+            if (mouseMoved) {
+              list.querySelector("li.selected")?.classList.remove("selected");
+              li.classList.add("selected");
+              selectedIndex = idx;
+            }
+          });
 
           /* Favicon */
           if (tab.favIconUrl) {
@@ -184,13 +201,12 @@ function showOmnibar() {
         }
       });
 
-      let selectedIndex = -1;
       input.addEventListener("keydown", (e) => {
         const items = list.querySelectorAll("li");
         const numItems = items.length;
 
         if (e.key === "Enter" && numItems >= 1) {
-          const selectedItem = items[0];
+          const selectedItem = items[selectedIndex >= 0 ? selectedIndex : 0];
           const tabId = parseInt(selectedItem.dataset.tabId, 10);
           switchToTab(tabId);
           e.preventDefault();
@@ -226,18 +242,13 @@ function showOmnibar() {
           selectedIndex = Math.max(selectedIndex - 10, 0);
           updateSelection();
           e.preventDefault();
-        } else if (e.key === "Enter" && selectedIndex >= 0 && numItems > 0) {
-          const selectedItem = items[selectedIndex];
-          const tabId = parseInt(selectedItem.dataset.tabId, 10);
-          switchToTab(tabId);
-          e.preventDefault();
         }
       });
 
       /* Helper to update selection */
       function updateSelection() {
         const items = list.querySelectorAll("li");
-        items.forEach((item) => item.classList.remove("selected"));
+        list.querySelector("li.selected")?.classList.remove("selected");
         if (selectedIndex >= 0 && selectedIndex < items.length) {
           items[selectedIndex].classList.add("selected");
           items[selectedIndex].scrollIntoView({ block: "nearest" });
@@ -260,6 +271,7 @@ function showOmnibar() {
     const overlay = document.getElementById("zen-browser-tab-switcher");
     if (overlay) {
       overlay.remove();
+      document.removeEventListener("mousemove", mouseMoveListener);
       document.removeEventListener("keydown", escListener);
       document.removeEventListener("visibilitychange", visibilityListener);
     }
