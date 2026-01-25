@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Extension Options for Zen Browser Tab Switcher</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; line-height: 1.5; }
+        .shortcut-card { border: 1px solid #ccc; padding: 15px; border-radius: 8px; }
+        kbd { background: #eee; border-radius: 3px; padding: 2px 5px; border: 1px solid #999; }
+        button { cursor: pointer; margin-top: 10px; }
+        @media (prefers-color-scheme: dark) {
+          html,body { background-color: #121212; color: #e0e0e0; }
+          .shortcut-card { border-color: #444; }
+          kbd { background: #333; border-color: #666; color: #e0e0e0; }
+          button { background-color: #333; color: #e0e0e0; border: 1px solid #666; }
+          input, select, textarea { background-color: #222; color: #e0e0e0; border: 1px solid #666; }
+        }
+    </style>
+</head>
+<body>
+    <h2>Settings</h2>
+    <div class="shortcut-card">
+        <p>Current Shortcut: <kbd id="current-shortcut">Loading...</kbd></p>
+        <button id="change-shortcut">Change Shortcut</button>
+    </div>
+    <script src="options.js"></script>
+</body>
+</html>
