@@ -46,11 +46,13 @@
   "browser_specific_settings": {
     "gecko": {
       "id": "zen-browser-tab-switcher@zen-browser-addons.mwco.app",
-      "strict_min_version": "78.0"
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
     }
   },
   "icons": {
-    "48": "icons/icon-512.png",
-    "96": "icons/icon-512.png"
+    "48": "icons/icon-48.png",
+    "96": "icons/icon-96.png"
   }
 }
