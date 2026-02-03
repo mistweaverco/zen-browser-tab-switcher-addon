@@ -2,15 +2,9 @@
  * Zen Browser Tab Switcher
  */
 
-/* Enhanced fuzzy matching algorithm:
- * - Case-insensitive matching
- * - Characters must appear in order but don't need to be consecutive
- * - More intuitive than exact matching
- * - Similar to Sublime Text's search behavior
- */
-function fuzzyMatch(str, query) {
-  str = str.toLowerCase();
+function fuzzyMatchString(str, query) {
   query = query.toLowerCase();
+  str = str.toLowerCase();
   let i = 0;
   for (const char of query) {
     i = str.indexOf(char, i);
@@ -18,6 +12,137 @@ function fuzzyMatch(str, query) {
     i++;
   }
   return true;
+}
+
+const countConsecutiveMatches = (str, query) => {
+  str = str.toLowerCase();
+  query = query.toLowerCase();
+  let maxCount = 0;
+  let currentCount = 0;
+  let qIndex = 0;
+  for (let i = 0; i < str.length; i++) {
+    if (str[i] === query[qIndex]) {
+      currentCount++;
+      qIndex++;
+      if (qIndex === query.length) {
+        maxCount = Math.max(maxCount, currentCount);
+        currentCount = 0;
+        qIndex = 0;
+      }
+    } else {
+      maxCount = Math.max(maxCount, currentCount);
+      currentCount = 0;
+      qIndex = 0;
+    }
+  }
+  maxCount = Math.max(maxCount, currentCount);
+  return maxCount;
+};
+
+const getSafeLower = (str) => (str ? str.toLowerCase() : "");
+
+/* Fuzzy matching
+ * Returns an ordered array of matched tabs
+ * - Case-insensitive
+ * - Characters must appear in order
+ * - Non-consecutive matches allowed
+ * - Higher precedence for matches earlier in the string
+ * - Highest precedence for consecutive character matches
+ * @param {Array} tabs - Array of tab objects with title and url
+ * @param {string} query - The search query
+ * @returns {Array} - Filtered array of tabs that match the query
+ */
+function fuzzyMatch(tabs, query) {
+  query = query.toLowerCase();
+  tabs = tabs.filter((tab) => {
+    const title = getSafeLower(tab.title);
+    const url = getSafeLower(tab.url);
+    return fuzzyMatchString(title, query) || fuzzyMatchString(url, query);
+  });
+  // Sort by position of first match in title
+  // Also consider URL matches if titles are equal
+  return tabs.sort((a, b) => {
+    const aTitle = getSafeLower(a.title);
+    const bTitle = getSafeLower(b.title);
+    const aIndex = aTitle.indexOf(query);
+    const bIndex = bTitle.indexOf(query);
+    if (aIndex === -1) return 1;
+    if (bIndex === -1) return -1;
+    return aIndex - bIndex;
+  }).sort((a, b) => {
+    // Secondary sort by URL if titles are equal
+    // to prioritize URL matches
+    // This ensures better relevance
+    // when titles are identical
+    const aTitle = getSafeLower(a.title);
+    const bTitle = getSafeLower(b.title);
+    if (aTitle === bTitle) {
+      const aUrl = getSafeLower(a.url);
+      const bUrl = getSafeLower(b.url);
+      const aIndex = aUrl.indexOf(query);
+      const bIndex = bUrl.indexOf(query);
+      if (aIndex === -1) return 1;
+      if (bIndex === -1) return -1;
+      return aIndex - bIndex;
+    }
+    return 0;
+  }).sort((a, b) => {
+    // Consecutive character match prioritization
+    // Tabs with more consecutive characters matching the query
+    // are ranked higher than those with fewer consecutive matches
+    // This enhances relevance for queries with repeated characters
+    // e.g., "aaa" matches "baaaad" better than "abacad"
+    // Tabs with longer consecutive matches appear first
+    // improving user experience
+    const aTitle = getSafeLower(a.title);
+    const bTitle = getSafeLower(b.title);
+    const aUrl = getSafeLower(a.url);
+    const bUrl = getSafeLower(b.url);
+    const aConsecTitle = countConsecutiveMatches(aTitle, query);
+    const bConsecTitle = countConsecutiveMatches(bTitle, query);
+    if (aConsecTitle !== bConsecTitle) {
+      return bConsecTitle - aConsecTitle;
+    }
+    const aConsecUrl = countConsecutiveMatches(aUrl, query);
+    const bConsecUrl = countConsecutiveMatches(bUrl, query);
+    return bConsecUrl - aConsecUrl;
+  }).sort((a, b) => {
+    // Perfect match prioritization
+    // Tabs with URLs that exactly match the query
+    // are ranked higher than partial matches
+    // Perfect url matches are ranked highest
+    // and the earliest perfect match appears first
+    const aUrl = getSafeLower(a.url);
+    const bUrl = getSafeLower(b.url);
+    const aPerfectUrl = aUrl === query ? 1 : 0;
+    const bPerfectUrl = bUrl === query ? 1 : 0;
+    if (aPerfectUrl === bPerfectUrl) {
+      const aStartsWith = aUrl.startsWith(query) ? 1 : 0;
+      const bStartsWith = bUrl.startsWith(query) ? 1 : 0;
+      if (aStartsWith !== bStartsWith) {
+        return bStartsWith - aStartsWith;
+      }
+    }
+    return bPerfectUrl - aPerfectUrl;
+  }).sort((a, b) => {
+    // Perfect match prioritization
+    // Tabs with titles that exactly match the query
+    // are ranked higher than partial matches
+    // Perfect title matches are ranked highest
+    // and the earliest perfect match appears first
+    const aTitle = getSafeLower(a.title);
+    const bTitle = getSafeLower(b.title);
+    const aPerfectTitle = aTitle === query ? 1 : 0;
+    const bPerfectTitle = bTitle === query ? 1 : 0;
+    if (aPerfectTitle === bPerfectTitle) {
+      const aStartsWith = aTitle.startsWith(query) ? 1 : 0;
+      const bStartsWith = bTitle.startsWith(query) ? 1 : 0;
+      if (aStartsWith !== bStartsWith) {
+        return bStartsWith - aStartsWith;
+      }
+    }
+    return bPerfectTitle - aPerfectTitle;
+  });
 }
 
 /* Main UI component initialization
@@ -188,14 +313,8 @@ function showOmnibar() {
 
       input.addEventListener("input", (e) => {
         const query = e.target.value;
-        let filtered = [];
         if (query) {
-          filtered = allTabs.filter(
-            (tab) =>
-              fuzzyMatch(tab.title || "", query) ||
-              fuzzyMatch(tab.url || "", query),
-          );
-          renderTabs(filtered);
+          renderTabs(fuzzyMatch(allTabs, query));
         } else {
           renderTabs(allTabs);
         }
