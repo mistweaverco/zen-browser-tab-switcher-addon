@@ -24,7 +24,7 @@ browser.commands.onCommand.addListener((command) => {
 });
 
 /* Handle messages from content scripts */
-browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+browser.runtime.onMessage.addListener((message, _, sendResponse) => {
   if (message.type === "getTabs") {
     browser.tabs
       .query({})
