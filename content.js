@@ -321,6 +321,12 @@ function showOmnibar() {
       });
 
       input.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          e.stopPropagation();
+          closeOmnibar();
+          return;
+        }
+
         const items = list.querySelectorAll("li");
         const numItems = items.length;
 
