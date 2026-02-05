@@ -18,10 +18,10 @@ A minimal tab management extension for Zen Browser.
 
 - **Keyboard Shortcuts**:
   - `Alt+T` (Windows/Linux) or `Ctrl+T` (macOS): Open search (configurable in settings)
-  - `↑/↓` or `ctrl+j/ctrl+k`: Navigate through results
-  - `ctrl+x`: Close selected tab
+  - `↑/↓`: Navigate through tabs (configurable in settings)
+  - `ctrl+x`: Close selected tab (configurable in settings)
   - `Enter`: Switch to selected tab or upmost tab if none selected
-  - `Esc`: Close search
+  - `Esc`: Close search (configurable in settings)
 
 ## 🚀 Installation
 
