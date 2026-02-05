@@ -406,8 +406,13 @@
 
   browser.runtime
     .sendMessage({ type: "getConfig" })
-    .then((config) => {
-      configCache = config;
+    .then((data) => {
+      configCache = { ...configCache, ...data };
+      for (const action in utils.defaultKeys) {
+        if (!configCache.keys[action]) {
+          configCache.keys[action] = utils.defaultKeys[action];
+        }
+      }
       console.log("Initial config loaded in content script:", configCache);
     })
     .catch((error) => {
