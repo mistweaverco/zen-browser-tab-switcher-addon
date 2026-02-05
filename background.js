@@ -24,7 +24,7 @@ browser.commands.onCommand.addListener((command) => {
 });
 
 /* Handle messages from content scripts */
-browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+browser.runtime.onMessage.addListener((message, _, sendResponse) => {
   if (message.type === "getTabs") {
     browser.tabs
       .query({})
@@ -96,6 +96,16 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
       .catch((error) => {
         console.error("Error closing tab:", error);
         sendResponse({ error: error.message });
+      });
+    return true;
+  } else if (message.type === "getConfig") {
+    browser.storage.sync
+      .get()
+      .then((config) => {
+        sendResponse(config);
+      })
+      .catch((error) => {
+        console.error("Error getting config:", error);
       });
     return true;
   }

@@ -1,14 +1,16 @@
 {
   "manifest_version": 2,
   "name": "Zen Browser Tab Switcher",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Tab switcher for Zen Browser with a minimal omnibar overlay",
   "permissions": [
+    "storage",
     "tabs",
     "<all_urls>"
   ],
   "web_accessible_resources": [
-    "fonts/manrope/manrope.woff2"
+    "fonts/manrope/manrope.woff2",
+    "utils.js"
   ],
   "options_ui": {
     "page": "options.html",
@@ -24,10 +26,8 @@
     }
   },
   "background": {
-    "scripts": [
-      "background.js"
-    ],
-    "persistent": false
+    "page": "background.html",
+    "persistent": true
   },
   "content_scripts": [
     {

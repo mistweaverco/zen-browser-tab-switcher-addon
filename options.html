@@ -4,24 +4,73 @@
     <title>Extension Options for Zen Browser Tab Switcher</title>
     <style>
         body { font-family: sans-serif; padding: 20px; line-height: 1.5; }
-        .shortcut-card { border: 1px solid #ccc; padding: 15px; border-radius: 8px; }
+        .shortcut-card { border: 1px solid #ccc; padding: 15px; border-radius: 8px; margin-bottom: 10px; }
         kbd { background: #eee; border-radius: 3px; padding: 2px 5px; border: 1px solid #999; }
         button { cursor: pointer; margin-top: 10px; }
         @media (prefers-color-scheme: dark) {
           html,body { background-color: #121212; color: #e0e0e0; }
           .shortcut-card { border-color: #444; }
           kbd { background: #333; border-color: #666; color: #e0e0e0; }
-          button { background-color: #333; color: #e0e0e0; border: 1px solid #666; }
-          input, select, textarea { background-color: #222; color: #e0e0e0; border: 1px solid #666; }
+          button { background-color: #333; color: #e0e0e0; border: 1px solid #666; font-size: 1em; padding: 5px 10px; }
+          input, select, textarea { background-color: #222; color: #e0e0e0; border: 1px solid #666; font-size: 1em; padding: 5px; border-radius: 4px;}
+        }
+        a {
+          color: #007acc;
+          text-decoration: underline;
         }
     </style>
 </head>
 <body>
     <h2>Settings</h2>
+    <h3>Sort Precedence</h3>
     <div class="shortcut-card">
-        <p>Current Shortcut: <kbd id="current-shortcut">Loading...</kbd></p>
-        <button id="change-shortcut">Change Shortcut</button>
+        <div>
+          When fuzzy matching, what has higher precedence?:
+          <select data-action="sortPrecedence" data-type="changeSetting">
+            <option value="title">Title</option>
+            <option value="url">URL</option>
+          </select>
+        </div>
     </div>
-    <script src="options.js"></script>
+    <h3>Shortcuts</h3>
+    <div class="shortcut-card">
+        <div>
+          Open Tab Switcher: <button data-action="openTabSwitcher" data-type="changeShortcut">Loading...</button>
+        </div>
+    </div>
+    <div class="shortcut-card">
+        <div>
+          Close Tab Switcher: <button data-action="closeTabSwitcher" data-type="changeShortcut">Loading...</button>
+        </div>
+    </div>
+    <div class="shortcut-card">
+        <div>
+          Next Tab: <button data-action="nextTab" data-type="changeShortcut">Loading...</button>
+        </div>
+    </div>
+    <div class="shortcut-card">
+        <div>
+          Previous Tab: <button data-action="previousTab" data-type="changeShortcut">Loading...</button>
+        </div>
+    </div>
+    <div class="shortcut-card">
+        <div>
+          Close Tab: <button data-action="closeTab" data-type="changeShortcut">Loading...</button>
+        </div>
+    </div>
+    <h3>CSS Overrides</h3>
+    <div class="shortcut-card">
+      <div>
+        You can enter custom CSS to override the default styles of the tab switcher. This allows you to customize the appearance to your liking. For example, you could change the background color, font size, or add custom animations.
+        See the <a href="content.css" target="_blank">reference CSS file</a> for the default styles and class names you can target.
+      </div>
+      <textarea spellcheck="false" data-action="customCSS" data-type="changeCSS" rows="30" style="width: 100%; font-family: monospace;" placeholder="#zen-browser-tab-switcher {
+  .zen-tab-item.selected {
+    border: 3px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.1);
+  }
+}"></textarea>
+    </div>
+    <script type="module" src="options.js"></script>
 </body>
 </html>
