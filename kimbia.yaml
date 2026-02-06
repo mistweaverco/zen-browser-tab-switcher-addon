@@ -1,0 +1,18 @@
+# yaml-language-server: $schema=https://kimbia.mwco.app/schema.json
+---
+tasks:
+  - name: clean
+    description: Clean the project
+    commands:
+      - platforms:
+          - linux
+        run:
+          - rm addon-*.zip && echo 'cleaned old zip files' || echo 'no old zip files found'
+  - name: zip
+    description: Zip the addon
+    commands:
+      - platforms:
+          - linux
+        run:
+          - rm addon-*.zip && echo 'cleaned old zip files' || echo 'no old zip files found'
+          - xargs -a ./zip-contents.txt zip -r "addon-$(jq -r .version < manifest.json).zip"

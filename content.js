@@ -5,8 +5,10 @@
 
   const cssOverrides = (action) => {
     if (
-      !configCache.cssOverrides || configCache.cssOverrides.trim().length === 0
-    ) return;
+      !configCache.cssOverrides ||
+      configCache.cssOverrides.trim().length === 0
+    )
+      return;
     let style = document.getElementById(utils.cssOverridesId);
     if (action === "apply") {
       if (style) {
@@ -63,16 +65,16 @@
   const getSafeLower = (str) => (str ? str.toLowerCase() : "");
 
   /* Fuzzy matching
- * Returns an ordered array of matched tabs
- * - Case-insensitive
- * - Characters must appear in order
- * - Non-consecutive matches allowed
- * - Higher precedence for matches earlier in the string
- * - Highest precedence for consecutive character matches
- * @param {Array} tabs - Array of tab objects with title and url
- * @param {string} query - The search query
- * @returns {Array} - Filtered array of tabs that match the query
- */
+   * Returns an ordered array of matched tabs
+   * - Case-insensitive
+   * - Characters must appear in order
+   * - Non-consecutive matches allowed
+   * - Higher precedence for matches earlier in the string
+   * - Highest precedence for consecutive character matches
+   * @param {Array} tabs - Array of tab objects with title and url
+   * @param {string} query - The search query
+   * @returns {Array} - Filtered array of tabs that match the query
+   */
   function fuzzyMatch(tabs, query) {
     console.log(configCache);
     query = query.toLowerCase();
@@ -83,71 +85,79 @@
     });
     // Sort by position of first match in highest precedence field (title or url)
     // Also consider secondary precedence field for tie-breaking
-    return tabs.sort((a, b) => {
-      const aTitle = getSafeLower(a[configCache.matchPrecedence[0]]);
-      const bTitle = getSafeLower(b[configCache.matchPrecedence[0]]);
-      const aIndex = aTitle.indexOf(query);
-      const bIndex = bTitle.indexOf(query);
-      if (aIndex === -1) return 1;
-      if (bIndex === -1) return -1;
-      return aIndex - bIndex;
-    }).sort((a, b) => {
-      // Secondary sort
-      // If both tabs have the same position for the primary match, use the secondary field to break ties
-      const aTitle = getSafeLower(a[configCache.matchPrecedence[0]]);
-      const bTitle = getSafeLower(b[configCache.matchPrecedence[0]]);
-      if (aTitle === bTitle) {
-        const aUrl = getSafeLower(a[configCache.matchPrecedence[1]]);
-        const bUrl = getSafeLower(b[configCache.matchPrecedence[1]]);
-        const aIndex = aUrl.indexOf(query);
-        const bIndex = bUrl.indexOf(query);
+    return tabs
+      .sort((a, b) => {
+        const aTitle = getSafeLower(a[configCache.matchPrecedence[0]]);
+        const bTitle = getSafeLower(b[configCache.matchPrecedence[0]]);
+        const aIndex = aTitle.indexOf(query);
+        const bIndex = bTitle.indexOf(query);
         if (aIndex === -1) return 1;
         if (bIndex === -1) return -1;
         return aIndex - bIndex;
-      }
-      return 0;
-    }).sort((a, b) => {
-      // Consecutive character match prioritization
-      // Tabs with more consecutive characters matching the query
-      // are ranked higher than those with fewer consecutive matches
-      // This enhances relevance for queries with repeated characters
-      // e.g., "aaa" matches "baaaad" better than "abacad"
-      // Tabs with longer consecutive matches appear first
-      // improving user experience
-      const aTitle = getSafeLower(a[configCache.matchPrecedence[0]]);
-      const bTitle = getSafeLower(b[configCache.matchPrecedence[0]]);
-      const aUrl = getSafeLower(a[configCache.matchPrecedence[1]]);
-      const bUrl = getSafeLower(b[configCache.matchPrecedence[1]]);
-      const aConsecTitle = countConsecutiveMatches(aTitle, query);
-      const bConsecTitle = countConsecutiveMatches(bTitle, query);
-      if (aConsecTitle !== bConsecTitle) {
-        return bConsecTitle - aConsecTitle;
-      }
-      const aConsecUrl = countConsecutiveMatches(aUrl, query);
-      const bConsecUrl = countConsecutiveMatches(bUrl, query);
-      return bConsecUrl - aConsecUrl;
-    }).sort((a, b) => {
-      // Perfect match prioritization
-      const aMatchPrecedence1 = getSafeLower(a[configCache.matchPrecedence[0]]);
-      const bMatchPrecedence2 = getSafeLower(b[configCache.matchPrecedence[0]]);
-      const aPerfectMatch = aMatchPrecedence1 === query ? 1 : 0;
-      const bPerfectMatch = bMatchPrecedence2 === query ? 1 : 0;
-      if (aPerfectMatch === bPerfectMatch) {
-        const aStartsWith = aMatchPrecedence1.startsWith(query) ? 1 : 0;
-        const bStartsWith = bMatchPrecedence2.startsWith(query) ? 1 : 0;
-        if (aStartsWith !== bStartsWith) {
-          return bStartsWith - aStartsWith;
+      })
+      .sort((a, b) => {
+        // Secondary sort
+        // If both tabs have the same position for the primary match, use the secondary field to break ties
+        const aTitle = getSafeLower(a[configCache.matchPrecedence[0]]);
+        const bTitle = getSafeLower(b[configCache.matchPrecedence[0]]);
+        if (aTitle === bTitle) {
+          const aUrl = getSafeLower(a[configCache.matchPrecedence[1]]);
+          const bUrl = getSafeLower(b[configCache.matchPrecedence[1]]);
+          const aIndex = aUrl.indexOf(query);
+          const bIndex = bUrl.indexOf(query);
+          if (aIndex === -1) return 1;
+          if (bIndex === -1) return -1;
+          return aIndex - bIndex;
         }
-      }
-      return bPerfectMatch - aPerfectMatch;
-    });
+        return 0;
+      })
+      .sort((a, b) => {
+        // Consecutive character match prioritization
+        // Tabs with more consecutive characters matching the query
+        // are ranked higher than those with fewer consecutive matches
+        // This enhances relevance for queries with repeated characters
+        // e.g., "aaa" matches "baaaad" better than "abacad"
+        // Tabs with longer consecutive matches appear first
+        // improving user experience
+        const aTitle = getSafeLower(a[configCache.matchPrecedence[0]]);
+        const bTitle = getSafeLower(b[configCache.matchPrecedence[0]]);
+        const aUrl = getSafeLower(a[configCache.matchPrecedence[1]]);
+        const bUrl = getSafeLower(b[configCache.matchPrecedence[1]]);
+        const aConsecTitle = countConsecutiveMatches(aTitle, query);
+        const bConsecTitle = countConsecutiveMatches(bTitle, query);
+        if (aConsecTitle !== bConsecTitle) {
+          return bConsecTitle - aConsecTitle;
+        }
+        const aConsecUrl = countConsecutiveMatches(aUrl, query);
+        const bConsecUrl = countConsecutiveMatches(bUrl, query);
+        return bConsecUrl - aConsecUrl;
+      })
+      .sort((a, b) => {
+        // Perfect match prioritization
+        const aMatchPrecedence1 = getSafeLower(
+          a[configCache.matchPrecedence[0]],
+        );
+        const bMatchPrecedence2 = getSafeLower(
+          b[configCache.matchPrecedence[0]],
+        );
+        const aPerfectMatch = aMatchPrecedence1 === query ? 1 : 0;
+        const bPerfectMatch = bMatchPrecedence2 === query ? 1 : 0;
+        if (aPerfectMatch === bPerfectMatch) {
+          const aStartsWith = aMatchPrecedence1.startsWith(query) ? 1 : 0;
+          const bStartsWith = bMatchPrecedence2.startsWith(query) ? 1 : 0;
+          if (aStartsWith !== bStartsWith) {
+            return bStartsWith - aStartsWith;
+          }
+        }
+        return bPerfectMatch - aPerfectMatch;
+      });
   }
 
   /* Main UI component initialization
- * Creates an overlay with search input and results list
- * Handles all user interactions and keyboard navigation
- * Manages tab switching and UI state
- */
+   * Creates an overlay with search input and results list
+   * Handles all user interactions and keyboard navigation
+   * Manages tab switching and UI state
+   */
   function showOmnibar() {
     /* Check if overlay already exists */
     if (document.getElementById("zen-browser-tab-switcher")) {
@@ -279,11 +289,11 @@
         }
 
         /* Tab switching logic
-       * - Validates tab ID before switching
-       * - Handles errors gracefully
-       * - Provides feedback on success/failure
-       * - Maintains UI consistency
-       */
+         * - Validates tab ID before switching
+         * - Handles errors gracefully
+         * - Provides feedback on success/failure
+         * - Maintains UI consistency
+         */
         function switchToTab(tabId) {
           if (!Number.isInteger(tabId) || tabId < 0) {
             console.error("Invalid tabId:", tabId);
@@ -316,9 +326,9 @@
 
         // INFO:
         // This fixes an issue with at least KDE Plasma where key events
-        // are inconsistently fired on keydown vs keyup
+        // are inconsistently fired on keydown vs keyup vs keypress
         // and ensures that the closeTabSwitcher action is triggered even after blur
-        input.addEventListener("keyup", (e) => {
+        input.addEventListener("keypress", (e) => {
           if (keyMatches(e, configCache.keys.closeTabSwitcher)) {
             escListener(e);
             return;
@@ -343,8 +353,8 @@
           }
 
           if (
-            keyMatches(e, configCache.keys.closeTab) && ((selectedIndex >= 0 &&
-              numItems > 0) || numItems === 1)
+            keyMatches(e, configCache.keys.closeTab) &&
+            ((selectedIndex >= 0 && numItems > 0) || numItems === 1)
           ) {
             e.stopPropagation();
             selectedIndex = selectedIndex >= 0 ? selectedIndex : 0;
@@ -356,15 +366,13 @@
           }
 
           if (keyMatches(e, configCache.keys.nextTab)) {
-            selectedIndex = selectedIndex < numItems - 1
-              ? selectedIndex + 1
-              : 0;
+            selectedIndex =
+              selectedIndex < numItems - 1 ? selectedIndex + 1 : 0;
             updateSelection();
             e.preventDefault();
           } else if (keyMatches(e, configCache.keys.previousTab)) {
-            selectedIndex = selectedIndex <= 0
-              ? numItems - 1
-              : selectedIndex - 1;
+            selectedIndex =
+              selectedIndex <= 0 ? numItems - 1 : selectedIndex - 1;
             updateSelection();
             e.preventDefault();
           }

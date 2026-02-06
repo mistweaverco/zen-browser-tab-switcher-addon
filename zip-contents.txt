@@ -1,0 +1,10 @@
+fonts/
+icons/
+background.html
+background.js
+content.css
+content.js
+manifest.json
+options.html
+options.js
+utils.js
