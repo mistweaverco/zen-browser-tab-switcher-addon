@@ -7,8 +7,9 @@
     if (
       !configCache.cssOverrides ||
       configCache.cssOverrides.trim().length === 0
-    )
+    ) {
       return;
+    }
     let style = document.getElementById(utils.cssOverridesId);
     if (action === "apply") {
       if (style) {
@@ -212,7 +213,7 @@
       }
     };
 
-    document.addEventListener("keydown", escListener);
+    document.addEventListener("keyup", escListener);
 
     /* Handle tab visibility changes */
     const visibilityListener = () => {
@@ -324,25 +325,15 @@
           }
         });
 
-        // INFO:
-        // This fixes an issue with at least KDE Plasma where key events
-        // are inconsistently fired on keydown vs keyup vs keypress
-        // and ensures that the closeTabSwitcher action is triggered even after blur
-        input.addEventListener("keypress", (e) => {
+        input.addEventListener("keydown", (e) => {
           if (keyMatches(e, configCache.keys.closeTabSwitcher)) {
-            escListener(e);
+            // handled by document keyup handler
+            // to ensure it works cross-platform
             return;
           }
-        });
 
-        input.addEventListener("keydown", (e) => {
           const items = list.querySelectorAll("li");
           const numItems = items.length;
-
-          if (keyMatches(e, configCache.keys.closeTabSwitcher)) {
-            // handled by keyup to ensure it triggers before any potential input changes
-            return;
-          }
 
           if (e.key === "Enter" && numItems >= 1) {
             const selectedItem = items[selectedIndex >= 0 ? selectedIndex : 0];
@@ -404,7 +395,7 @@
       if (overlay) {
         overlay.remove();
         document.removeEventListener("mousemove", mouseMoveListener);
-        document.removeEventListener("keydown", escListener);
+        document.removeEventListener("keyup", escListener);
         document.removeEventListener("visibilitychange", visibilityListener);
         cssOverrides("remove");
       }
