@@ -1,4 +1,4 @@
-import { defaultConfig, defaultConfigKeys } from "./utils.js";
+import { defaultConfig, defaultConfigKeys, Logger } from "./utils.js";
 
 const defaultKeys = defaultConfigKeys;
 let configCache = defaultConfig;
@@ -18,7 +18,7 @@ const saveConfig = async (configObject) => {
   try {
     await browser.storage.sync.set(configObject);
   } catch (error) {
-    console.error("Error saving config:", error);
+    Logger.error("Error saving config:", error);
   }
 };
 
@@ -31,22 +31,23 @@ const loadConfig = async () => {
         configCache.keys[action] = defaultKeys[action];
       }
     }
-    console.log("Loaded config:", configCache);
+    Logger.log("Loaded config:", configCache);
   } catch (error) {
-    console.error("Error loading config:", error);
+    Logger.error("Error loading config:", error);
   }
 };
 
 const updateUI = async () => {
   await loadConfig();
   const commands = await browser.commands.getAll();
-  const toggleCommand = commands.find((c) =>
-    c.name === "show-zen-browner-tab-switcher-omnibar"
+  const toggleCommand = commands.find(
+    (c) => c.name === "show-zen-browner-tab-switcher-omnibar",
   );
 
   if (toggleCommand) {
-    document.querySelector("button[data-action='openTabSwitcher']")
-      .textContent = toggleCommand.shortcut || "None";
+    document.querySelector(
+      "button[data-action='openTabSwitcher']",
+    ).textContent = toggleCommand.shortcut || "None";
   }
 
   for (const action in configCache.keys) {
@@ -80,8 +81,7 @@ const editKey = (evt) => {
     evt.target.dataset.action === "openTabSwitcher"
   ) {
     browser.tabs.create({
-      url:
-        "https://support.mozilla.org/en-US/kb/manage-extension-shortcuts-firefox",
+      url: "https://support.mozilla.org/en-US/kb/manage-extension-shortcuts-firefox",
     });
     return;
   }
@@ -116,9 +116,10 @@ const recordKey = async (evt) => {
 const changePrecedence = async (evt) => {
   const newPrecedence = evt.target.value;
   const validOptions = ["title", "url"];
-  const newValue = newPrecedence === validOptions[0]
-    ? [validOptions[0], validOptions[1]]
-    : [validOptions[1], validOptions[0]];
+  const newValue =
+    newPrecedence === validOptions[0]
+      ? [validOptions[0], validOptions[1]]
+      : [validOptions[1], validOptions[0]];
   configCache.matchPrecedence = newValue;
   await saveConfig(configCache);
 };
@@ -128,7 +129,7 @@ const changeCSSOverrides = async (newCSS) => {
     alert(
       "CSS overrides exceed the maximum allowed size of 50 KB. Changes not saved.",
     );
-    console.error("CSS overrides exceed the maximum allowed size of 50 KB.");
+    Logger.error("CSS overrides exceed the maximum allowed size of 50 KB.");
     return;
   }
   configCache.cssOverrides = newCSS;
@@ -146,12 +147,11 @@ export const debouncedChangeCSSOverrides = (newCSS) => {
   }, 1500);
 };
 
-document.querySelector("textarea[data-type='changeCSS']").addEventListener(
-  "change",
-  (evt) => {
+document
+  .querySelector("textarea[data-type='changeCSS']")
+  .addEventListener("change", (evt) => {
     debouncedChangeCSSOverrides(evt.target.value);
-  },
-);
+  });
 
 document.body.addEventListener("keyup", async (evt) => {
   if (!isRecordingKey) {

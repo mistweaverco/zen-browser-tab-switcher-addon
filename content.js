@@ -1,5 +1,6 @@
 (async () => {
   const utils = await import(browser.runtime.getURL("utils.js"));
+  const Logger = utils.Logger;
   const keyMatches = utils.keyMatches;
   let configCache = utils.defaultConfig;
 
@@ -77,7 +78,7 @@
    * @returns {Array} - Filtered array of tabs that match the query
    */
   function fuzzyMatch(tabs, query) {
-    console.log(configCache);
+    Logger.log(configCache);
     query = query.toLowerCase();
     tabs = tabs.filter((tab) => {
       const title = getSafeLower(tab.title);
@@ -204,16 +205,16 @@
     /* Explicitly focus the input */
     input.focus();
 
-    /* Handle Escape key globally */
-    const escListener = (e) => {
+    const globalEscListener = (e) => {
       if (keyMatches(e, configCache.keys.closeTabSwitcher)) {
-        closeOmnibar();
         e.preventDefault();
         e.stopPropagation();
+        Logger.info("Close tab switcher key pressed globally");
+        closeOmnibar(e);
       }
     };
 
-    document.addEventListener("keyup", escListener);
+    document.addEventListener("keydown", globalEscListener);
 
     /* Handle tab visibility changes */
     const visibilityListener = () => {
@@ -297,20 +298,20 @@
          */
         function switchToTab(tabId) {
           if (!Number.isInteger(tabId) || tabId < 0) {
-            console.error("Invalid tabId:", tabId);
+            Logger.error("Invalid tabId:", tabId);
             return;
           }
           browser.runtime
             .sendMessage({ type: "switchTab", tabId })
             .then((response) => {
               if (response.error) {
-                console.error("Error response from switchTab:", response.error);
+                Logger.error("Error response from switchTab:", response.error);
                 return;
               }
               closeOmnibar();
             })
             .catch((error) => {
-              console.error("Error sending switchTab message:", error);
+              Logger.error("Error sending switchTab message:", error);
             });
         }
 
@@ -325,13 +326,24 @@
           }
         });
 
-        input.addEventListener("keydown", (e) => {
-          if (keyMatches(e, configCache.keys.closeTabSwitcher)) {
-            // handled by document keyup handler
-            // to ensure it works cross-platform
-            return;
-          }
+        input.addEventListener(
+          "keydown",
+          (e) => {
+            if (keyMatches(e, configCache.keys.closeTabSwitcher)) {
+              e.preventDefault();
+              e.stopPropagation();
+              Logger.info("Close tab switcher key pressed from input");
+              closeOmnibar();
+              return;
+            }
+          },
+          {
+            capture: true,
+            passive: false,
+          },
+        );
 
+        input.addEventListener("keydown", (e) => {
           const items = list.querySelectorAll("li");
           const numItems = items.length;
 
@@ -379,7 +391,7 @@
         }
       })
       .catch((error) => {
-        console.error("Error fetching tabs:", error);
+        Logger.error("Error fetching tabs:", error);
       });
 
     /* Close on click outside */
@@ -395,7 +407,7 @@
       if (overlay) {
         overlay.remove();
         document.removeEventListener("mousemove", mouseMoveListener);
-        document.removeEventListener("keyup", escListener);
+        document.removeEventListener("keydown", globalEscListener);
         document.removeEventListener("visibilitychange", visibilityListener);
         cssOverrides("remove");
       }
@@ -405,12 +417,12 @@
   /* Listen for changes in sync storage */
   browser.storage.onChanged.addListener((changes, areaName) => {
     if (areaName === "sync") {
-      console.log("Sync storage changed:", changes);
+      Logger.log("Sync storage changed:", changes);
       for (const key in changes) {
         const { newValue } = changes[key];
         configCache[key] = newValue;
       }
-      console.log("Config updated in content script:", configCache);
+      Logger.log("Config updated in content script:", configCache);
     }
   });
 
@@ -423,10 +435,10 @@
           configCache.keys[action] = utils.defaultKeys[action];
         }
       }
-      console.log("Initial config loaded in content script:", configCache);
+      Logger.log("Initial config loaded in content script:", configCache);
     })
     .catch((error) => {
-      console.error("Error getting config:", error);
+      Logger.error("Error getting config:", error);
     });
 
   /* Listen for messages from background */
