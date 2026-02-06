@@ -314,12 +314,23 @@
           }
         });
 
+        // INFO:
+        // This fixes an issue with at least KDE Plasma where key events
+        // are inconsistently fired on keydown vs keyup
+        // and ensures that the closeTabSwitcher action is triggered even after blur
+        input.addEventListener("keyup", (e) => {
+          if (keyMatches(e, configCache.keys.closeTabSwitcher)) {
+            escListener(e);
+            return;
+          }
+        });
+
         input.addEventListener("keydown", (e) => {
           const items = list.querySelectorAll("li");
           const numItems = items.length;
 
           if (keyMatches(e, configCache.keys.closeTabSwitcher)) {
-            escListener(e);
+            // handled by keyup to ensure it triggers before any potential input changes
             return;
           }
 
